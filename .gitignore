@@ -1,0 +1,37 @@
+# ===== 仿真 / 编译产物 =====
+# Icarus Verilog
+*.out
+*.vvp
+a.out
+# 波形 / 转储
+*.vcd
+*.fst
+*.lxt
+*.lxt2
+# 目标文件 / 静态库 / 动态库
+*.o
+*.a
+*.so
+*.dll
+*.exe
+
+# ===== Python（汇编脚本）=====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# ===== 日志与临时/备份文件 =====
+*.log
+*.tmp
+*.bak
+*~
+dbg*.sv
+dbg*.out
+
+# ===== 编辑器 / 系统 =====
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
