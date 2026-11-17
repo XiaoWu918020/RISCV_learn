@@ -35,3 +35,9 @@ dbg*.out
 .idea/
 .DS_Store
 Thumbs.db
+
+# ===== FreeRTOS 第三方官方源码（659MB，按版本单独获取，不入库）=====
+freeRTOS/
+
+# ===== FreeRTOS 构建产物（可由 build.ps1 一键重新生成）=====
+freertos_app/build/

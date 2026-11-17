@@ -40,9 +40,12 @@ module if_unit #(
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             pc_r <= PC_RST;
+        end else if (pc_sel_i) begin
+            // 重定向（跳转/分支/异常/中断/mret）优先级最高，即使停顿也必须跳转
+            pc_r <= pc_new_i;
         end else if (!stall_i) begin
-            // 停顿时保持；否则按重定向/顺序更新
-            pc_r <= pc_sel_i ? pc_new_i : (pc_r + 32'd4);
+            // 无重定向且不停顿时顺序取指；停顿时 PC 保持
+            pc_r <= pc_r + 32'd4;
         end
     end
 
@@ -60,16 +63,16 @@ module if_unit #(
             ifid_pc_r    <= '0;
             ifid_inst_r  <= INST_NOP;
             ifid_valid_r <= 1'b0;
-        end else if (stall_i) begin
-            // 停顿：整组保持
-            ifid_pc_r    <= ifid_pc_r;
-            ifid_inst_r  <= ifid_inst_r;
-            ifid_valid_r <= ifid_valid_r;
         end else if (flush_i) begin
-            // 冲刷：注入气泡
+            // 冲刷优先于停顿：重定向（跳转/异常/中断/mret）时丢弃当前指令
             ifid_pc_r    <= '0;
             ifid_inst_r  <= INST_NOP;
             ifid_valid_r <= 1'b0;
+        end else if (stall_i) begin
+            // 停顿且无冲刷：整组保持
+            ifid_pc_r    <= ifid_pc_r;
+            ifid_inst_r  <= ifid_inst_r;
+            ifid_valid_r <= ifid_valid_r;
         end else begin
             // 正常锁存当前取指结果
             ifid_pc_r    <= pc_r;

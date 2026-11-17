@@ -74,6 +74,9 @@ module ex_unit (
 
     //==========================================================================
     // 1. 运算部件输入选择
+    //      对所有经过主 ALU 的算术 / 逻辑 / 访存地址运算
+    //      a 在 PC 与 rs1 间二选一、b 在 imm 与 rs2 间二选一；
+    //      LUI、跳转目标地址、CSR、独立乘除是例外
     //==========================================================================
     logic [31:0] alu_a, alu_b;
     assign alu_a = ctrl_i.auipc ? pc_i : reg_a_i;          // auipc 以 PC 为基址
@@ -110,7 +113,7 @@ module ex_unit (
     //==========================================================================
     assign dmem_addr_o  = alu_y;   // 地址 = 基址 + 偏移（ALU 加法结果）
 
-    logic load_misalign, store_misalign;
+    logic load_misalign, store_misalign; //加载地址错位标志，存储地址错位标志
     assign load_misalign  = ctrl_i.mem_read &&
                             ((ctrl_i.mem_size == MEM_HALF && dmem_addr_o[0]) ||
                              (ctrl_i.mem_size == MEM_WORD && (|dmem_addr_o[1:0])));

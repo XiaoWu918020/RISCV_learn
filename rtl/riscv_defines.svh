@@ -36,26 +36,26 @@ package riscv_defines;
     //--------------------------------------------------------------------------
     // ALU 操作编码（alu_op）
     //--------------------------------------------------------------------------
-    localparam logic [4:0] ALU_ADD      = 5'd0;
-    localparam logic [4:0] ALU_SUB      = 5'd1;
+    localparam logic [4:0] ALU_ADD      = 5'd0;   // 加法（含寄存器-立即数运算）
+    localparam logic [4:0] ALU_SUB      = 5'd1;   // 减法（仅寄存器-寄存器运算）
     localparam logic [4:0] ALU_SLL      = 5'd2;   // 逻辑左移
     localparam logic [4:0] ALU_SLT      = 5'd3;   // 有符号比较小于
     localparam logic [4:0] ALU_SLTU     = 5'd4;   // 无符号比较小于
-    localparam logic [4:0] ALU_XOR      = 5'd5;
+    localparam logic [4:0] ALU_XOR      = 5'd5;   // 异或
     localparam logic [4:0] ALU_SRL      = 5'd6;   // 逻辑右移
     localparam logic [4:0] ALU_SRA      = 5'd7;   // 算术右移
-    localparam logic [4:0] ALU_OR       = 5'd8;
-    localparam logic [4:0] ALU_AND      = 5'd9;
+    localparam logic [4:0] ALU_OR       = 5'd8;   // 或
+    localparam logic [4:0] ALU_AND      = 5'd9;   // 与
 
     //--------------------------------------------------------------------------
     // 立即数类型编码（imm_sel）
     //--------------------------------------------------------------------------
     localparam logic [2:0] IMM_X        = 3'd0;   // 无立即数
-    localparam logic [2:0] IMM_I        = 3'd1;
-    localparam logic [2:0] IMM_S        = 3'd2;
-    localparam logic [2:0] IMM_B        = 3'd3;
-    localparam logic [2:0] IMM_U        = 3'd4;
-    localparam logic [2:0] IMM_J        = 3'd5;
+    localparam logic [2:0] IMM_I        = 3'd1;   // I 型立即数
+    localparam logic [2:0] IMM_S        = 3'd2;   // S 型立即数
+    localparam logic [2:0] IMM_B        = 3'd3;   // B 型立即数
+    localparam logic [2:0] IMM_U        = 3'd4;   // U 型立即数
+    localparam logic [2:0] IMM_J        = 3'd5;   // J 型立即数
 
     //--------------------------------------------------------------------------
     // 访存大小编码（funct3[1:0]）
