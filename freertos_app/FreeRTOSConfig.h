@@ -14,7 +14,7 @@
  *----------------------------------------------------------------------------*/
 #define configMTIME_BASE_ADDRESS        ( 0x40000000UL + 0xBFF8UL ) /* 0x4000BFF8 */
 #define configMTIMECMP_BASE_ADDRESS     ( 0x40000000UL + 0x4000UL ) /* 0x40004000 */
-#define configCPU_CLOCK_HZ              ( 100000000UL )             /* 100 MHz */
+#define configCPU_CLOCK_HZ              ( 25000000UL )              /* 25 MHz（MMCM 后实际系统时钟） */
 #define configTICK_RATE_HZ              ( ( TickType_t ) 1000UL )    /* 1 ms/tick */
 
 /*------------------------------------------------------------------------------

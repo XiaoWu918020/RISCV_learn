@@ -31,6 +31,10 @@ module riscv_soc #(
     parameter int          IMEM_WORDS  = 4096,           // 指令字数（16 KB）
     parameter logic [31:0] DMEM_BASE   = 32'h2000_0000,  // 数据存储基址
     parameter int          DMEM_WORDS  = 16384,          // 数据字数（64 KB）
+    parameter logic [31:0] UART_BASE   = 32'h1000_0000,  // UART 基址（与 FPGA SoC 对齐）
+    parameter logic [31:0] UART_SIZE   = 32'h0000_0100,
+    parameter logic [31:0] GPO_BASE    = 32'h1000_1000,  // GPO/LED 基址
+    parameter logic [31:0] GPO_SIZE    = 32'h0000_0100,
     parameter logic [31:0] CLINT_BASE  = 32'h4000_0000,  // CLINT 基址
     parameter logic [31:0] CLINT_SIZE  = 32'h0000_C000,  // CLINT 译码窗口（48 KB）
     parameter              HEX_FILE    = "firmware.hex"  // 固件 hex 文件名
@@ -58,12 +62,16 @@ module riscv_soc #(
     //--------------------------------------------------------------------------
     // 地址译码：按 [基址, 基址+大小) 窗口选中对应从设备
     //--------------------------------------------------------------------------
-    logic imem_sel, dmem_sel, clint_sel;
+    logic imem_sel, dmem_sel, clint_sel, uart_sel, gpo_sel;
 
     // IMEM 数据口窗口：仅用于只读访问代码/只读常量（如 xISRStackTop），
     // 写逻辑不响应此选择，故对数据口而言 IMEM 天然只读。
     assign imem_sel  = (dmem_addr >= IMEM_BASE) &&
                        (dmem_addr <  IMEM_BASE + (IMEM_WORDS * 4));
+    assign uart_sel  = (dmem_addr >= UART_BASE) &&
+                       (dmem_addr <  UART_BASE + UART_SIZE);
+    assign gpo_sel   = (dmem_addr >= GPO_BASE) &&
+                       (dmem_addr <  GPO_BASE + GPO_SIZE);
     assign dmem_sel  = (dmem_addr >= DMEM_BASE) &&
                        (dmem_addr <  DMEM_BASE + (DMEM_WORDS * 4));
     assign clint_sel = (dmem_addr >= CLINT_BASE) &&
@@ -138,6 +146,38 @@ module riscv_soc #(
     assign clint_re    = dmem_en && clint_sel && ~(|dmem_wbe);
 
     //==========================================================================
+    // UART 外设（与 FPGA SoC 同一模块，仿真即可验证完整固件；tx 内部观测）
+    //==========================================================================
+    logic [31:0] uart_rdata;
+    logic        uart_tx;
+    logic        uart_reg_we;
+    assign uart_reg_we = dmem_en && uart_sel && (|dmem_wbe);
+
+    uart u_uart (
+        .clk         (clk),
+        .rst_n       (rst_n),
+        .reg_addr_i  (dmem_addr[3:0]),
+        .reg_wdata_i (dmem_wdata),
+        .reg_we_i    (uart_reg_we),
+        .reg_rdata_o (uart_rdata),
+        .tx_o        (uart_tx)
+    );
+
+    //==========================================================================
+    // GPO 输出寄存器（仿真中不接 LED，仅保证固件访问行为与 FPGA 一致）
+    //==========================================================================
+    logic [31:0] gpo;
+    logic        gpo_we;
+    assign gpo_we = dmem_en && gpo_sel && (|dmem_wbe);
+
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            gpo <= 32'b0;
+        else if (gpo_we)
+            gpo <= dmem_wdata;
+    end
+
+    //==========================================================================
     // 读数据 mux：默认返回 0（未映射地址），按译码结果选择从设备
     //   先给默认值再分支，保证纯组合、不产生锁存
     //==========================================================================
@@ -151,6 +191,10 @@ module riscv_soc #(
             dmem_rdata = clint_rdata;       // CLINT 读数据
         else if (dmem_sel)
             dmem_rdata = dmem_read_raw;    // DMEM 读数据
+        else if (uart_sel)
+            dmem_rdata = uart_rdata;       // UART 状态
+        else if (gpo_sel)
+            dmem_rdata = gpo;              // GPO 回读
         else if (imem_sel)
             dmem_rdata = imem_dread;       // IMEM 只读数据（代码/常量）
         // 未映射/保留地址：保持默认 0

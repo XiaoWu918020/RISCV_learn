@@ -41,3 +41,19 @@ freeRTOS/
 
 # ===== FreeRTOS 构建产物（可由 build.ps1 一键重新生成）=====
 freertos_app/build/
+
+# ===== Vivado 工程生成目录与临时文件 =====
+fpga/.Xil/
+fpga/scripts/.Xil/
+fpga/RISCV.cache/
+fpga/RISCV.hw/
+fpga/RISCV.ip_user_files/
+fpga/RISCV.runs/
+fpga/RISCV.sim/
+fpga/RISCV.srcs/
+fpga/*.jou
+fpga/*.str
+fpga/scripts/*.jou
+fpga/scripts/*_out.txt
+fpga/baremetal_min/build/
+fpga/baremetal_uart/build/

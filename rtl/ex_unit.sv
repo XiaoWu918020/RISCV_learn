@@ -244,8 +244,23 @@ module ex_unit (
     assign exc_enter_o = sync_exc || irq_taken;
     assign exc_cause_o = sync_exc ? sync_cause : irq_cause_i;
     assign exc_tval_o  = sync_exc ? sync_tval  : 32'b0;
-    // 同步异常断点=当前指令；中断断点=ID 级最年轻未完成指令
-    assign exc_epc_o   = sync_exc ? pc_i : (id_valid_i ? id_pc_i : (pc_i + 32'd4));
+    // 同步异常断点=当前指令。异步中断时当前 EX 指令仍提交，因此断点必须是
+    // 它之后的实际执行地址：控制转移指令不能简单取 pc+4，否则 ret/jal/分支
+    // 与中断同拍时，mret 会错误返回顺序路径（例如从函数 epilogue 中间继续）。
+    logic [31:0] irq_next_pc;
+    always_comb begin
+        if (ctrl_i.jump)
+            irq_next_pc = branch_target;
+        else if (ctrl_i.jalr)
+            irq_next_pc = jalr_target;
+        else if (branch_taken)
+            irq_next_pc = branch_target;
+        else if (id_valid_i)
+            irq_next_pc = id_pc_i;
+        else
+            irq_next_pc = pc_i + 32'd4;
+    end
+    assign exc_epc_o = sync_exc ? pc_i : irq_next_pc;
 
     //==========================================================================
     // 6. CSR 指令输出
